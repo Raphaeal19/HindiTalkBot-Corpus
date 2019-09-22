@@ -9,7 +9,7 @@ from pocketsphinx import LiveSpeech
 
 tr = Translator()
 r = sr.Recognizer()
-
+r.energy_threshold = 270
 def speak(audioString, langOp):
 	print("Speak: ", audioString)
 	tts = gt(text=audioString, lang=langOp)
@@ -27,17 +27,20 @@ def botTrainer(name):
 
 def recordAudio():
 	with sr.Microphone() as source:
-		print("Say Something!")
-		speak(translateLang("I am listening", "hi"), "hi")
-		audio = r.listen(source)
+		r.adjust_for_ambient_noise(source, duration=2)
+		#print("main suun rahi hoon!")
 
-	data = ""
-	try:
-		data = r.recognize_google(audio)
-		print("You said: " + data)
-	except sr.UnknownValueError:
-		print("Google Speech Recognition could not understand audio")
-	return data
+		data = ""
+		while 1:
+			try:
+				speak(translateLang("I am listening", "hi"), "hi")
+				audio = r.listen(source)
+				data = r.recognize_google(audio)
+				print("You said: " + data)
+				return data
+			except sr.UnknownValueError:
+				speak("Main apko samjhi nahi", "hi")
+				print("Google Speech Recognition could not understand audio")
 
 def translateLang(audioString, toLang):
 	if(toLang == "hi"):
@@ -71,11 +74,11 @@ print("REPLY: ", reply)
 speak(translateLang(reply, "hi"),"hi")
 '''
 #speak(translateLang("namaskar", "en"), "en-us")
-
 name = input("What will be the name for your bot? ")
 myBot = botTrainer(name)
-audioString = recordAudio()
-input1 = translateLang(audioString, "hi")
-reply = myBot.get_response(input1)
-speak(reply, "hi")
+while 1:
+	audioString = recordAudio()
+	input1 = translateLang(audioString, "hi")
+	reply = myBot.get_response(input1).text
+	speak(reply, "hi")
 
